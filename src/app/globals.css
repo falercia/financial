@@ -1,0 +1,50 @@
+@import "tailwindcss";
+
+/* Tokens visuais do protótipo aprovado. */
+@theme {
+  --font-sans: var(--font-plex-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-fraunces), Georgia, serif;
+
+  --color-paper: #f4f2ec;
+  --color-surface: #ffffff;
+  --color-subtle: #f7f5f0;
+  --color-line: #e3dfd5;
+  --color-line-strong: #d9d4c8;
+  --color-ink: #1b1d21;
+  --color-ink-soft: #3f4249;
+  --color-muted: #5e6168;
+
+  --color-brand: #23408e;
+  --color-brand-strong: #172c66;
+  --color-brand-soft: #eef1f8;
+
+  --color-positive: #2e7d4f;
+  --color-positive-ink: #1f5135;
+  --color-positive-soft: #e2efe6;
+  --color-warning-ink: #8a3b00;
+  --color-warning-soft: #fdeedc;
+  --color-danger: #c0392b;
+  --color-danger-ink: #a61b12;
+  --color-danger-soft: #fbe4e1;
+
+  --color-night: #15171b;
+  --color-night-raised: #2a2e36;
+  --color-night-ink: #c9cbcf;
+  --color-night-muted: #8e9198;
+}
+
+@layer base {
+  html {
+    color-scheme: light;
+  }
+  body {
+    @apply bg-paper text-ink font-sans antialiased;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-brand);
+    outline-offset: 2px;
+  }
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+}
