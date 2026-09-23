@@ -31,7 +31,7 @@ supabase/migrations/        Schema versionado (fonte única da verdade)
 tests/db/                   Testes do banco (RLS, funções, isolamento)
 ```
 
-Contextos previstos: `identity` (pronto), `ledger` (lançamentos), `cards`, `recurrences`, `installments`, `budget`, `income`, `imports`, `insights`, `ai`, `messaging` (WhatsApp).
+Contextos previstos: `identity` (pronto), `ledger` (despesas, pronto na Fase 1a), `cards`, `recurrences`, `installments`, `budget`, `income`, `imports`, `insights`, `ai`, `messaging` (WhatsApp).
 
 ## Fluxo de uma requisição
 
@@ -46,7 +46,9 @@ Cada camada assume que a anterior pode falhar. Uma rota esquecida no proxy conti
 
 - Uma pessoa pode pertencer a várias organizações e escolhe a ativa no menu. O cookie da organização ativa é só preferência: o acesso é sempre conferido no banco.
 - Papéis: `owner` (proprietário), `admin` (administrador) e `member` (membro).
-- Regra dos dados financeiros, a partir da Fase 1: administradores veem tudo da organização; membros veem apenas o que é deles. Implementada pela função `private.can_access_owned(org_id, owner_id)`, já testada.
+- Regra dos dados financeiros: cada pessoa vê o que é seu; administradores veem também o das outras pessoas, exceto despesas marcadas como **privadas**, que entram só nos totais (`expense_month_summary`).
+- Fornecedores pertencem a cada pessoa. Digitar um nome nunca revela se outra pessoa já comprou naquele fornecedor, e a categoria padrão é preferência individual. Clientes leem apenas `id`, `org_id` e `name` de fornecedores.
+- Excluir a conta de uma pessoa apaga as despesas e o histórico dela (LGPD); os totais dos meses passados da organização mudam de acordo.
 - Planos futuros por quantidade de pessoas: `organizations.plan` e `organizations.seat_limit`, alteráveis só pelo backend. Convites respeitam o limite, contando convites pendentes.
 
 ## Dinheiro

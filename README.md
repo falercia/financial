@@ -4,13 +4,13 @@ Inteligência financeira pessoal e familiar: cartões, faturas, contas recorrent
 
 Multi-organização desde o início: uma família (ou equipe) compartilha uma organização, administradores veem tudo e cada membro vê o que é seu. Nenhum dado atravessa organizações.
 
-> **Estado atual: Fase 0 (fundação).** Login com Google ou e-mail, verificação em duas etapas obrigatória, organizações, membros, convites, auditoria e isolamento testado no banco. Lançamentos financeiros chegam na Fase 1. Veja o [roadmap](docs/roadmap.md).
+> **Estado atual: Fase 1a.** Fundação completa (login com Google ou e-mail, verificação em duas etapas obrigatória, organizações, convites, auditoria, isolamento testado) e registro rápido de despesas com total do mês e despesas privadas. Veja o [roadmap](docs/roadmap.md).
 
 ## Stack
 
 Next.js 16 · React 19 · TypeScript · Tailwind 4 · Supabase (Postgres, Auth, RLS) · Vitest + PGlite · Vercel
 
-Detalhes em [docs/arquitetura.md](docs/arquitetura.md) e [docs/seguranca.md](docs/seguranca.md).
+Detalhes em [docs/arquitetura.md](docs/arquitetura.md), [docs/seguranca.md](docs/seguranca.md) e [docs/backup.md](docs/backup.md).
 
 ## Rodando pela primeira vez
 
@@ -62,11 +62,14 @@ cp .env.example .env.local
 
 Preencha `NEXT_PUBLIC_SUPABASE_URL` e `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (Project Settings > API Keys, chave **publishable**). Nunca use a chave secreta no app.
 
-### 7. Rodar
+### 7. Verificar e rodar
 
 ```bash
+npm run verificar
 npm run dev
 ```
+
+`npm run verificar` confere as variáveis, se a chave é a pública (e não a secreta), se o Google e a confirmação de e-mail estão ligados, se as migrações foram aplicadas e se um visitante anônimo continua bloqueado. Não altera nada.
 
 Abra http://localhost:3000, crie a conta, cadastre o autenticador e crie a sua organização.
 
@@ -75,8 +78,11 @@ Abra http://localhost:3000, crie a conta, cadastre o autenticador e crie a sua o
 1. Importe o repositório na Vercel.
 2. Configure as mesmas variáveis do `.env.local`, com `NEXT_PUBLIC_APP_URL` apontando para o domínio de produção.
 3. No Supabase, adicione `https://SEU-DOMINIO/auth/callback` às Redirect URLs e ajuste a Site URL.
+4. Rode `npm run verificar -- .env.production.local` com as variáveis de produção para conferir antes de abrir o app.
 
-Antes de guardar dados reais, use plano pago no Supabase (backups diários e sem pausa por inatividade).
+As funções rodam em São Paulo (`gru1`, definido em `vercel.json`), na mesma região do banco.
+
+Antes de guardar dados reais, use plano pago no Supabase (backups diários e sem pausa por inatividade) e ative o backup próprio criptografado: [docs/backup.md](docs/backup.md).
 
 ## Scripts
 
@@ -84,6 +90,7 @@ Antes de guardar dados reais, use plano pago no Supabase (backups diários e sem
 | ------------------------ | --------------------------------------------------------------- |
 | `npm run dev`            | Servidor de desenvolvimento                                     |
 | `npm run check`          | Lint, verificação de tipos e todos os testes                    |
+| `npm run verificar`      | Confere ambiente, Supabase e bloqueios de segurança             |
 | `npm test`               | Testes unitários e de banco (isolamento, MFA, papéis, convites) |
 | `npm run build`          | Build de produção                                               |
 | `npm run format`         | Formata o código                                                |

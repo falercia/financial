@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getActiveOrganization, listMembers } from "@/modules/identity/application/organizations";
 import { isAdminRole } from "@/modules/identity/domain/roles";
+import { hasAnyExpense } from "@/modules/ledger/application/expenses";
 
 export const metadata: Metadata = { title: "Visão geral" };
 
@@ -10,7 +11,7 @@ type Step = { label: string; detail: string; done: boolean; href?: string };
 export default async function OverviewPage() {
   const organization = await getActiveOrganization();
   if (!organization) return null;
-  const members = await listMembers(organization.id);
+  const [members, hasExpense] = await Promise.all([listMembers(organization.id), hasAnyExpense(organization.id)]);
   const canInvite = isAdminRole(organization.role);
 
   const steps: Step[] = [
@@ -24,7 +25,12 @@ export default async function OverviewPage() {
       done: members.length > 1,
       href: canInvite ? "/organizacao" : undefined,
     },
-    { label: "Registrar a primeira despesa", detail: "Chega na próxima fase: cadastro manual, faturas e contas.", done: false },
+    {
+      label: "Registrar a primeira despesa",
+      detail: "Fornecedor, valor e forma de pagamento. Leva menos de 10 segundos.",
+      done: hasExpense,
+      href: "/despesas",
+    },
     { label: "Vincular seu WhatsApp", detail: "Mande despesas por mensagem, foto ou áudio.", done: false },
   ];
 

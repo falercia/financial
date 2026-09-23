@@ -13,7 +13,7 @@ export const NAV_GROUPS: NavGroup[] = [
     label: "Gastos",
     icon: "M3 6h18v12H3zM3 10h18M7 15h3",
     items: [
-      { label: "Despesas" },
+      { label: "Despesas", href: "/despesas" },
       { label: "Cartões e faturas" },
       { label: "Parcelamentos" },
       { label: "Contas recorrentes" },

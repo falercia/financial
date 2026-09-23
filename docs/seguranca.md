@@ -31,6 +31,10 @@
 | Contas podem ser excluídas; exclusão da organização remove todos os seus dados                               | chaves estrangeiras + exceção de cascata na auditoria |
 | Apenas erros de regra de negócio (SQLSTATE `FA***`) chegam ao usuário                                        | `application/result.ts`                               |
 | Redirecionamentos do callback usam a URL configurada, nunca o cabeçalho Host                                 | `app/auth/callback/route.ts`                          |
+| Despesas: cada pessoa vê as suas; administradores não veem despesas privadas de outras pessoas, só o total   | RLS `expenses_select`, `expense_month_summary`        |
+| Fornecedores por pessoa: nome de compra privada não vaza por digitação nem pela categoria padrão             | `suppliers` com dono, grant só de `id, org_id, name`  |
+| Despesas só são editadas ou excluídas por quem registrou; exclusão lógica e histórico imutável               | `update_expense`, `delete_expense`, `expense_history` |
+| Fornecedor e categoria sempre da mesma organização da despesa                                                | chaves estrangeiras compostas                         |
 
 ## Testes automáticos de segurança
 
@@ -48,6 +52,9 @@ Os testes foram validados por mutação: ao remover a exigência de MFA de uma t
 
 ## Revisão independente
 
+Fase 1a: a revisão encontrou que o nome de um fornecedor usado numa despesa privada podia ser descoberto por outra pessoa digitando o mesmo nome. O modelo passou a ter fornecedores por pessoa; o caso virou teste automático, junto com categoria padrão individual, colunas internas ocultas, validação de competência e exclusão de conta.
+
+Fase 0:
 Uma revisão de segurança independente foi feita sobre a Fase 0. Nenhum caminho de acesso entre organizações nem de contorno do MFA foi encontrado. Os pontos levantados (corrida entre proprietários, cookies legíveis por script, convite sem e-mail confirmado, convites que sobreviviam à perda de autoridade, exclusão de contas bloqueada, renomeação sem auditoria, mensagens internas do banco expostas) foram corrigidos e cobertos por testes.
 
 ## Pendências conhecidas (Fase 5)
