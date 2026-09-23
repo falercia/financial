@@ -46,3 +46,6 @@ supabase/.branches
 
 # exceção: modelo de variáveis
 !.env.example
+
+# rascunhos locais (patches ainda não aplicados)
+.wip/

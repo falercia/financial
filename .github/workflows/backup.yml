@@ -1,0 +1,69 @@
+name: Backup do banco
+
+# Cópia diária, criptografada, independente do fornecedor.
+# Só roda quando os dois segredos estiverem configurados (veja docs/backup.md).
+on:
+  schedule:
+    - cron: "0 7 * * *" # 04:00 em Brasília
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: backup
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+      BACKUP_AGE_RECIPIENT: ${{ secrets.BACKUP_AGE_RECIPIENT }}
+    steps:
+      - name: Conferir configuração
+        id: config
+        run: |
+          if [ -z "$SUPABASE_DB_URL" ] || [ -z "$BACKUP_AGE_RECIPIENT" ]; then
+            echo "Segredos SUPABASE_DB_URL e BACKUP_AGE_RECIPIENT não configurados. Backup ignorado."
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: supabase/setup-cli@v1
+        if: steps.config.outputs.enabled == 'true'
+        with:
+          version: 2.117.0
+
+      - name: Exportar papéis, estrutura e dados
+        if: steps.config.outputs.enabled == 'true'
+        run: |
+          set -euo pipefail
+          umask 077
+          mkdir -p dump
+          supabase db dump --db-url "$SUPABASE_DB_URL" --role-only -f dump/roles.sql
+          supabase db dump --db-url "$SUPABASE_DB_URL" -f dump/schema.sql
+          supabase db dump --db-url "$SUPABASE_DB_URL" --data-only --use-copy -f dump/data.sql
+          ls -la dump
+
+      - name: Criptografar
+        if: steps.config.outputs.enabled == 'true'
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq && sudo apt-get install -y -qq age
+          stamp=$(date -u +%Y%m%dT%H%M%SZ)
+          tar -czf - -C dump . | age -r "$BACKUP_AGE_RECIPIENT" -o "backup-$stamp.tar.gz.age"
+          # Nenhum arquivo em texto claro sai do runner.
+          rm -rf dump
+          echo "BACKUP_FILE=backup-$stamp.tar.gz.age" >> "$GITHUB_ENV"
+
+      - name: Guardar como artefato privado
+        if: steps.config.outputs.enabled == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.BACKUP_FILE }}
+          path: ${{ env.BACKUP_FILE }}
+          retention-days: 30
+          if-no-files-found: error
